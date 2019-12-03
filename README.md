@@ -122,6 +122,24 @@ getCurrentDownloading()
 isDownloading()
 ```
 
+> ***是否有串行下载文件正在下载***
+
+```
+/**
+ * @returns {Boolean} 
+ */
+isSerialDownloading()
+```
+
+> ***获取未完成下载的串行下载文件***
+
+```
+/**
+ * @returns {Array} 
+ */
+getWaitDownloadFiles()
+```
+
 # 监听事件
 
 ## ***下载进度***
