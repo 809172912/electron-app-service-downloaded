@@ -42,13 +42,76 @@ addWindows(appWindows)
 
 ```
 /**
- * downloadFiles: [{
- *     url: 'https://test-cdn.vipthink.cn/video/class/course_share_201910301510.zip', 下载资源路径
- *     downloadFolder: 'C:\\Users\\caozhenhui\\Desktop', 保存到哪里
+ * downloadFileList: [{
+ *     url: 'https://***.cn/***.zip', 下载资源路径
+ *     downloadFolder: 'C:\\Users\\***\\Desktop', 保存到哪里
  *     downloadFileName: 'abc.zip', 保存下来的文件名称（可选）
  *     downloadMode: 'serial', serial（串行下载）、parallel（并行下载）
  *     window: 'indexWindow' 回调给哪个渲染进程，对应init方法needDownloadServiceWindow参数的key
  * }]
  */
-download(downloadFiles)
+download(downloadFileList)
+```
+
+> ***暂停下载***
+
+```
+/**
+ * pauseFileList: [
+ *     'https://***.cn/***.zip' 下载资源路径
+ *     'https://***.cn/***.zip' 下载资源路径
+ *     'https://***.cn/***.zip' 下载资源路径
+ * ]
+ */
+pause(pauseFileList)
+```
+
+> ***暂停恢复***
+
+```
+/**
+ * resumeFileList: [
+ *     'https://***.cn/***.zip' 下载资源路径
+ *     'https://***.cn/***.zip' 下载资源路径
+ *     'https://***.cn/***.zip' 下载资源路径
+ * ]
+ */
+resume(resumeFileList)
+```
+
+> ***取消下载***
+
+```
+/**
+ * cancelFileList: [
+ *     'https://***.cn/***.zip' 下载资源路径
+ *     'https://***.cn/***.zip' 下载资源路径
+ *     'https://***.cn/***.zip' 下载资源路径
+ * ]
+ */
+cancel(cancelFileList)
+```
+
+> ***取消全部下载***
+
+```
+cancelAll()
+```
+
+> ***当前正在下载的文件***
+
+```
+/**
+ * @returns {Array} 
+ */
+getCurrentDownloading()
+```
+
+> ***是否有文件正在下载***
+
+```
+/**
+ * @returns {Boolean} 
+ */
+isDownloading()
 ```
