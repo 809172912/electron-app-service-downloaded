@@ -121,3 +121,75 @@ getCurrentDownloading()
  */
 isDownloading()
 ```
+
+# 监听事件
+
+## ***下载进度***
+
+> server-download-downloadProgress
+
+```
+/**
+ * receivedBytes: 已下载的大小（字节）
+ * totalBytes: 文件总大小（字节）
+ * downloadFile: 当前暂停的文件
+ */
+callback({receivedBytes, totalBytes, downloadFile})
+```
+
+## ***下载暂停***
+
+> server-download-downloadPause
+
+```
+/**
+ * receivedBytes: 已下载的大小（字节）
+ * totalBytes: 文件总大小（字节）
+ * downloadFile: 当前暂停的文件
+ */
+callback({receivedBytes, totalBytes, downloadFile})
+```
+
+## ***下载已经中断，可以恢复***
+
+> server-download-downloadPause
+
+```
+/**
+ * receivedBytes: 已下载的大小（字节）
+ * totalBytes: 文件总大小（字节）
+ * downloadFile: 当前暂停的文件
+ */
+callback({receivedBytes, totalBytes, downloadFile})
+```
+
+## ***下载失败***
+
+> server-download-downloadFail
+
+```
+/**
+ * state: cancelled（下载已被取消）、interrupted（下载已经中断，无法恢复）
+ * downloadFile: 当前暂停的文件
+ */
+callback({state, downloadFile})
+```
+
+## ***单个文件下载成功***
+
+> server-download-downloadFileSuccess
+
+```
+/**
+ * downloadFile: 当前暂停的文件
+ */
+callback({downloadFile})
+```
+
+## ***全部文件下载成功***
+
+> server-download-downloadSuccess
+
+```
+callback()
+```
