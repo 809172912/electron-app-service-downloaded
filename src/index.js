@@ -84,7 +84,7 @@ class DownloadService {
           // 从串行下载池当中移除当前下载完成的文件
           that[deleteSerialFileByDownloadUrl](item.getURL())
           // 串行下载池完全下载完毕
-          if (!that.serialWaitDownloadArr.length) that[sendDownloadSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
+          if (!that.serialWaitDownloadArr.length) that[sendDownloadSuccess]()
           // 串行下载池队列下载
           if (that.serialWaitDownloadArr.length) that[downloadOneByOne]()
         }
@@ -121,11 +121,6 @@ class DownloadService {
     this.currentDownloadItems[downloadItem.getURL()] = downloadItem
   }
 
-  // 开始下载
-  startDownload () {
-    this[downloadOneByOne]()
-  }
-
   // 取消部分下载
   cancel (fileList) {
     if (Object.keys(this.currentDownloadItems).length <= 0) return
@@ -149,7 +144,7 @@ class DownloadService {
     }
   })
     // 如果当前串行下载池没有文件在下载，就执行串行下载池队列
-    if (!this.isSerialDownloading()) this.startDownload()
+    if (!this.isSerialDownloading()) this[downloadOneByOne]()
   }
 
   // 取消全部下载
@@ -175,6 +170,15 @@ class DownloadService {
     // 如果当前串行下载池没有文件在下载，就执行串行下载池队列
     if (!this.serialWaitDownloadArr.length) return
     if (!this.isSerialDownloading()) this[downloadOneByOne]()
+  }
+
+  // 暂停全部下载
+  pauseAll () {
+    let serialWaitDownloadFiles = []
+    this.serialWaitDownloadArr.forEach(serialWaitDownloadFile => {
+      serialWaitDownloadFiles.push(serialWaitDownloadFile.url)
+    })
+    this.pause([...new Set([...Object.keys(this.currentDownloadItems), ...serialWaitDownloadFiles])])
   }
 
   // 暂停恢复
@@ -393,7 +397,7 @@ class DownloadService {
   }
 
   // 下载成功
-  [sendDownloadSuccess] (downloadFile) {
+  [sendDownloadSuccess] () {
     if (this.allWindows[downloadFile.window]) {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadSuccess)
     }
