@@ -66,6 +66,12 @@ download(downloadFileList)
 pause(pauseFileList)
 ```
 
+> ***暂停全部下载***
+
+```
+pauseAll()
+```
+
 > ***暂停恢复***
 
 ```
