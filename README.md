@@ -10,7 +10,7 @@ $ npm install electron-app-service-downloaded
 ```
 
 
-# 使用
+# 使用 api
 
 > ***初始化***
 
