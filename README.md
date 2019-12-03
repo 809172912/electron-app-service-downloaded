@@ -47,7 +47,7 @@ addWindows(appWindows)
  *     downloadFolder: 'C:\\Users\\***\\Desktop', 保存到哪里
  *     downloadFileName: 'abc.zip', 保存下来的文件名称（可选）
  *     downloadMode: 'serial', serial（串行下载）、parallel（并行下载）
- *     window: 'indexWindow' 回调给哪个渲染进程，对应init方法needDownloadServiceWindow参数的key
+ *     window: 'indexWindow' 下载状态、进度回调给哪个渲染进程，对应init方法needDownloadServiceWindow参数的key
  * }]
  */
 download(downloadFileList)
