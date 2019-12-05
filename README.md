@@ -15,6 +15,8 @@ $ npm install electron-app-service-downloaded
 > ***初始化***
 
 ```
+// 主进程index.js
+
 import electronAppServiceDownload from "electron-app-service-downloaded"
 
 // 需要用到下载服务的渲染进程
@@ -31,6 +33,8 @@ electronDownloadService.init(needDownloadServiceWindow, goDownloadWindow)
 > ***添加需要用到下载服务的渲染进程***
 
 ```
+// 主进程index.js
+
 /**
  * appWindows: {
  *      loginWindow: new BrowserWindow({……})
