@@ -37,15 +37,9 @@ class DownloadService {
   }
 
   /**
-   * appWindows: {
-   *  loginWindow: new BrowserWindow(),
-   *  indexWindow: new BrowserWindow(),
-   *  hiddenWindow: new BrowserWindow()
-   * }
    * downloadWindow: hiddenWindow (触发下载功能的进程)
    * */
-  init (appWindows, downloadWindow) {
-    this.addWindows(appWindows)
+  init (downloadWindow) {
     this.downloadWindow = downloadWindow
     this[initDownloadProgress]()
   }
@@ -109,8 +103,15 @@ class DownloadService {
   }, 40)
   }
 
-  // 挂载窗口集合对象
-  addWindows (appWindows) {
+  /**
+   * 挂载窗口集合对象
+   * appWindows: {
+   *  loginWindow: new BrowserWindow(),
+   *  indexWindow: new BrowserWindow(),
+   *  hiddenWindow: new BrowserWindow()
+   * }
+   * */
+  addWindows (appWindows = {}) {
     Object.keys(appWindows).forEach(appWindow => {
       if (!this.allWindows[appWindow]) this.allWindows[appWindow] = appWindows[appWindow]
     })
