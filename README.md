@@ -28,7 +28,7 @@ let needDownloadServiceWindow = {
 let goDownloadWindow = needDownloadServiceWindow.indexWindow
 // 初始化
 electronDownloadService.init(goDownloadWindow)
-electronDownloadService.appWindows(needDownloadServiceWindow)
+electronDownloadService.addWindows(needDownloadServiceWindow)
 ```
 
 > ***添加需要用到下载服务的渲染进程***
