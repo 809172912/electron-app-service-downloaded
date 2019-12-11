@@ -209,11 +209,3 @@ callback({state, downloadFile})
  */
 callback({downloadFile})
 ```
-
-## ***全部文件下载成功***
-
-> server-download-downloadSuccess
-
-```
-callback()
-```
