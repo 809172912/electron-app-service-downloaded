@@ -78,7 +78,7 @@ class DownloadService {
           // 从串行下载池当中移除当前下载完成的文件
           that[deleteSerialFileByDownloadUrl](item.getURL())
           // 串行下载池完全下载完毕
-          if (!that.serialWaitDownloadArr.length) that[sendDownloadSuccess]()
+          // if (!that.serialWaitDownloadArr.length) that[sendDownloadSuccess]()
           // 串行下载池队列下载
           if (that.serialWaitDownloadArr.length) that[downloadOneByOne]()
         }
@@ -235,7 +235,11 @@ class DownloadService {
 
   // 当前正在下载的文件
   getCurrentDownloading () {
-    return JSON.parse(JSON.stringify(Object.values(this.currentDownloadItems)))
+    let currentDownloadingFiles = []
+    Object.keys(this.currentDownloadItems).forEach(fileUrl => {
+      currentDownloadingFiles.push(this.allDownloadFiles[fileUrl])
+    })
+    return JSON.parse(JSON.stringify(currentDownloadingFiles))
   }
 
   // 是否有文件正在下载
