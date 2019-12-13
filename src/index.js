@@ -53,6 +53,7 @@ class DownloadService {
         that[setCurrentDownloadItem](item)
         item.setSavePath(path.join(that.allDownloadFiles[item.getURL()].downloadFolder, that.allDownloadFiles[item.getURL()].downloadFileName || item.getFilename()))
       item.on('updated', (event, state) => {
+        if (!that) return
         // 下载已经中断，可以恢复
         if (state === 'interrupted') {
         console.log('下载已经中断，可以恢复')
@@ -70,7 +71,8 @@ class DownloadService {
       }
     })
       item.on('done', (event, state) => {
-        // 下载成功完成
+        if (!that) return
+        // 下载成功完成s
         if (state === 'completed') {
         that[sendDownloadFileSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
         // 串行下载
