@@ -1,6 +1,6 @@
 {
   "name": "electron-app-service-downloaded",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "electron下载服务，支持串行下载、并行下载、单文件下载控制、下载队列总控",
   "private": false,
   "files": [

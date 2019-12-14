@@ -53,7 +53,6 @@ class DownloadService {
         that[setCurrentDownloadItem](item)
         item.setSavePath(path.join(that.allDownloadFiles[item.getURL()].downloadFolder, that.allDownloadFiles[item.getURL()].downloadFileName || item.getFilename()))
       item.on('updated', (event, state) => {
-        if (!that) return
         // 下载已经中断，可以恢复
         if (state === 'interrupted') {
         console.log('下载已经中断，可以恢复')
@@ -71,7 +70,6 @@ class DownloadService {
       }
     })
       item.on('done', (event, state) => {
-        if (!that) return
         // 下载成功完成s
         if (state === 'completed') {
         that[sendDownloadFileSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
@@ -80,7 +78,7 @@ class DownloadService {
           // 从串行下载池当中移除当前下载完成的文件
           that[deleteSerialFileByDownloadUrl](item.getURL())
           // 串行下载池完全下载完毕
-          // if (!that.serialWaitDownloadArr.length) that[sendDownloadSuccess]()
+          if (!that.serialWaitDownloadArr.length) that[sendDownloadSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
           // 串行下载池队列下载
           if (that.serialWaitDownloadArr.length) that[downloadOneByOne]()
         }
@@ -100,6 +98,9 @@ class DownloadService {
       delete that.currentDownloadItems[item.getURL()]
     })
     })
+      this.downloadWindow.on('closed', () => {
+        downloadService.cancelAll()
+      })
       clearInterval(timer)
     }
   }, 40)
@@ -404,7 +405,7 @@ class DownloadService {
   }
 
   // 下载成功
-  [sendDownloadSuccess] () {
+  [sendDownloadSuccess] (downloadFile) {
     if (this.allWindows[downloadFile.window]) {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadSuccess)
     }
