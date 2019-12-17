@@ -2,18 +2,30 @@ import path from 'path'
 import appEventConfig from './appEventConfig'
 
 // 私有方法
-let downloadOneByOne = Symbol('downloadOneByOne')
-let sendDownloadProgress = Symbol('sendDownloadProgress')
-let sendDownloadFaild = Symbol('sendDownloadFaild')
-let sendDownloadFileSuccess = Symbol('sendDownloadFileSuccess')
-let sendDownloadSuccess = Symbol('sendDownloadSuccess')
-let initDownloadProgress = Symbol('initDownloadProgress')
-let setCurrentDownloadItem = Symbol('setCurrentDownloadItem')
-let getDownloadMode = Symbol('getDownloadMode')
-let sendDownloadPause = Symbol('sendDownloadPause')
-let sendDownloadInterrupted = Symbol('sendDownloadInterrupted')
-let deleteSerialFileByDownloadUrl = Symbol('deleteSerialFileByDownloadUrl')
-let existSerialWaitDownloadArr = Symbol('existSerialWaitDownloadArr')
+// let downloadOneByOne = Symbol('downloadOneByOne')
+// let sendDownloadProgress = Symbol('sendDownloadProgress')
+// let sendDownloadFaild = Symbol('sendDownloadFaild')
+// let sendDownloadFileSuccess = Symbol('sendDownloadFileSuccess')
+// let sendDownloadSuccess = Symbol('sendDownloadSuccess')
+// let initDownloadProgress = Symbol('initDownloadProgress')
+// let setCurrentDownloadItem = Symbol('setCurrentDownloadItem')
+// let getDownloadMode = Symbol('getDownloadMode')
+// let sendDownloadPause = Symbol('sendDownloadPause')
+// let sendDownloadInterrupted = Symbol('sendDownloadInterrupted')
+// let deleteSerialFileByDownloadUrl = Symbol('deleteSerialFileByDownloadUrl')
+// let existSerialWaitDownloadArr = Symbol('existSerialWaitDownloadArr')
+let downloadOneByOne = 'downloadOneByOne'
+let sendDownloadProgress = 'sendDownloadProgress'
+let sendDownloadFaild = 'sendDownloadFaild'
+let sendDownloadFileSuccess = 'sendDownloadFileSuccess'
+let sendDownloadSuccess = 'sendDownloadSuccess'
+let initDownloadProgress = 'initDownloadProgress'
+let setCurrentDownloadItem = 'setCurrentDownloadItem'
+let getDownloadMode = 'getDownloadMode'
+let sendDownloadPause = 'sendDownloadPause'
+let sendDownloadInterrupted = 'sendDownloadInterrupted'
+let deleteSerialFileByDownloadUrl = 'deleteSerialFileByDownloadUrl'
+let existSerialWaitDownloadArr = 'existSerialWaitDownloadArr'
 
 /*
 * 下载服务
@@ -50,6 +62,7 @@ class DownloadService {
     let timer = setInterval(() => {
       if (this.downloadWindow) {
         this.downloadWindow.webContents.session.addListener('will-download', (event, item) => {
+          if (!that.allDownloadFiles[item.getURL()]) return
           that[setCurrentDownloadItem](item)
           item.setSavePath(path.join(that.allDownloadFiles[item.getURL()].downloadFolder, that.allDownloadFiles[item.getURL()].downloadFileName || item.getFilename()))
           item.on('updated', (event, state) => {
