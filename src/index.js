@@ -26,6 +26,8 @@ let sendDownloadPause = 'sendDownloadPause'
 let sendDownloadInterrupted = 'sendDownloadInterrupted'
 let deleteSerialFileByDownloadUrl = 'deleteSerialFileByDownloadUrl'
 let existSerialWaitDownloadArr = 'existSerialWaitDownloadArr'
+let fileExistDownliadList = 'fileExistDownliadList'
+let addDownloadFileSuccess = 'addDownloadFileSuccess'
 
 /*
 * 下载服务
@@ -85,7 +87,7 @@ class DownloadService {
           item.on('done', (event, state) => {
             // 下载成功完成s
             if (state === 'completed') {
-              that[sendDownloadFileSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
+              that[sendDownloadFileSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])), item.getTotalBytes())
               // 串行下载
               if (that[getDownloadMode](item.getURL()) === 'serial') {
                 // 从串行下载池当中移除当前下载完成的文件
@@ -292,10 +294,14 @@ class DownloadService {
       if (
         Object.keys(this.currentDownloadItems).includes(downloadFiles[i].url) ||
         this[existSerialWaitDownloadArr](downloadFiles[i].url)
-      ) continue
+      ) {
+        this[fileExistDownliadList](downloadFiles[i])
+        continue
+      }
       downloadFiles[i]._status = this.downloadStatus.WAITING
       if (downloadFiles[i].downloadMode === 'serial') this.serialWaitDownloadArr = [...this.serialWaitDownloadArr, downloadFiles[i]]
       this.allDownloadFiles[downloadFiles[i].url] = downloadFiles[i]
+      this[addDownloadFileSuccess](downloadFiles[i])
       if (
         downloadFiles[i].downloadMode === 'serial' &&
         this.isSerialDownloading()
@@ -409,9 +415,28 @@ class DownloadService {
   }
 
   // 单个文件下载成功
-  [sendDownloadFileSuccess](downloadFile) {
+  [sendDownloadFileSuccess](downloadFile, fileSize) {
     if (this.allWindows[downloadFile.window]) {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadFileSuccess, {
+        downloadFile,
+        fileSize
+      })
+    }
+  }
+
+  // 文件已经在下载或存在下载列表当中
+  [fileExistDownliadList](downloadFile) {
+    if (this.allWindows[downloadFile.window]) {
+      this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.fileExistDownliadList, {
+        downloadFile
+      })
+    }
+  }
+
+  // 添加文件到下载池（并行或者串行都算）成功
+  [addDownloadFileSuccess](downloadFile) {
+    if (this.allWindows[downloadFile.window]) {
+      this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.addDownloadFileSuccess, {
         downloadFile
       })
     }
