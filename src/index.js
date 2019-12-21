@@ -14,20 +14,22 @@ import appEventConfig from './appEventConfig'
 // let sendDownloadInterrupted = Symbol('sendDownloadInterrupted')
 // let deleteSerialFileByDownloadUrl = Symbol('deleteSerialFileByDownloadUrl')
 // let existSerialWaitDownloadArr = Symbol('existSerialWaitDownloadArr')
-let downloadOneByOne = 'downloadOneByOne'
-let sendDownloadProgress = 'sendDownloadProgress'
-let sendDownloadFaild = 'sendDownloadFaild'
-let sendDownloadFileSuccess = 'sendDownloadFileSuccess'
-let sendDownloadSuccess = 'sendDownloadSuccess'
-let initDownloadProgress = 'initDownloadProgress'
-let setCurrentDownloadItem = 'setCurrentDownloadItem'
-let getDownloadMode = 'getDownloadMode'
-let sendDownloadPause = 'sendDownloadPause'
-let sendDownloadInterrupted = 'sendDownloadInterrupted'
-let deleteSerialFileByDownloadUrl = 'deleteSerialFileByDownloadUrl'
-let existSerialWaitDownloadArr = 'existSerialWaitDownloadArr'
-let fileExistDownliadList = 'fileExistDownliadList'
-let addDownloadFileSuccess = 'addDownloadFileSuccess'
+let downloadOneByOne = Symbol('downloadOneByOne')
+let sendDownloadProgress = Symbol('sendDownloadProgress')
+let sendDownloadFaild = Symbol('sendDownloadFaild')
+let sendDownloadFileSuccess = Symbol('sendDownloadFileSuccess')
+let sendDownloadSuccess = Symbol('sendDownloadSuccess')
+let initDownloadProgress = Symbol('initDownloadProgress')
+let setCurrentDownloadItem = Symbol('setCurrentDownloadItem')
+let getDownloadMode = Symbol('getDownloadMode')
+let sendDownloadPause = Symbol('sendDownloadPause')
+let sendDownloadPauseAll = Symbol('sendDownloadPauseAll')
+let sendResumeFail = Symbol('sendResumeFail')
+let sendDownloadInterrupted = Symbol('sendDownloadInterrupted')
+let deleteSerialFileByDownloadUrl = Symbol('deleteSerialFileByDownloadUrl')
+let existSerialWaitDownloadArr = Symbol('existSerialWaitDownloadArr')
+let fileExistDownliadList = Symbol('fileExistDownliadList')
+let addDownloadFileSuccess = Symbol('addDownloadFileSuccess')
 
 /*
 * 下载服务
@@ -47,7 +49,12 @@ class DownloadService {
   downloadStatus = {
     WAITING: 'waiting',
     DOWNLOADING: 'downloading',
+    PAUSING: 'pausing',
     PAUSE: 'pause'
+  }
+  // 恢复暂停失败原因
+  resumeFailReasons = {
+    PAUSING: 'resume-fail-pausing',
   }
 
   /**
@@ -76,6 +83,7 @@ class DownloadService {
             // 下载暂停
             if (state === 'progressing' && item.isPaused()) {
               console.log('下载暂停')
+              that.allDownloadFiles[item.getURL()]._status = that.downloadStatus.PAUSE
               that[sendDownloadPause](item.getReceivedBytes(), item.getTotalBytes(), JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
             }
             // 正在下载
@@ -182,7 +190,7 @@ class DownloadService {
   pause(pauseFileList) {
     pauseFileList.forEach(pauseFile => {
       // 设置下载状态为停止
-      if (this.allDownloadFiles[pauseFile]) this.allDownloadFiles[pauseFile]._status = this.downloadStatus.PAUSE
+      if (this.allDownloadFiles[pauseFile]) this.allDownloadFiles[pauseFile]._status = this.downloadStatus.PAUSING
       // 当前下载对象池设置停止
       if (Object.keys(this.currentDownloadItems).includes(pauseFile)) this.currentDownloadItems[pauseFile].pause()
     })
@@ -193,15 +201,43 @@ class DownloadService {
 
   // 暂停全部下载
   pauseAll() {
+    let targetFilesUrl = []
     let serialWaitDownloadFiles = []
     this.serialWaitDownloadArr.forEach(serialWaitDownloadFile => {
       serialWaitDownloadFiles.push(serialWaitDownloadFile.url)
     })
-    this.pause([...new Set([...Object.keys(this.currentDownloadItems), ...serialWaitDownloadFiles])])
+    targetFilesUrl = [...new Set([...Object.keys(this.currentDownloadItems), ...serialWaitDownloadFiles])]
+    this.pause(targetFilesUrl)
+    this.checkPauseAllSuccess()
+  }
+
+  // 检查暂停全部下载
+  checkPauseAllSuccess (pauseAllFileList) {
+    let pauseAllSuccess = true
+    pauseAllFileList.forEach(pauseFile => {
+      if (this.allDownloadFiles[pauseFile]._status === this.downloadStatus.PAUSING) pauseAllSuccess = false
+    })
+    if (pauseAllSuccess) {
+      this[sendDownloadPauseAll](this.allDownloadFiles[pauseAllFileList[0]])
+    } else {
+      this.checkPauseAllSuccess()
+    }
   }
 
   // 暂停恢复
   resume(resumeFileList) {
+    // 如果文件还在暂停中，就return
+    let hasPausing = false
+    for (let i = 0; i < resumeFileList.length; i++) {
+      if (this.allDownloadFiles[resumeFileList[i]]._status === this.downloadStatus.PAUSING) {
+        hasPausing = true
+        this[sendResumeFail](this.allDownloadFiles[resumeFileList[i]], this.resumeFailReasons.PAUSING)
+        break
+      }
+    }
+    if (hasPausing) {
+      return
+    }
     for (let i = 0; i < resumeFileList.length; i++) {
       let isSerialWaitDownloadFile = this[existSerialWaitDownloadArr](resumeFileList[i])
       let isCurrentDownloadFile = Object.keys(this.currentDownloadItems).includes(resumeFileList[i])
@@ -389,6 +425,23 @@ class DownloadService {
         receivedBytes,
         totalBytes,
         downloadFile
+      })
+    }
+  }
+
+  // 下载暂停全部
+  [sendDownloadPauseAll](downloadFile) {
+    if (this.allWindows[downloadFile.window]) {
+      this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadPauseAll)
+    }
+  }
+
+  // 恢复下载失败
+  [sendResumeFail] (resumeFile, failReason) {
+    if (this.allWindows[resumeFile.window]) {
+      this.allWindows[resumeFile.window].webContents.send(appEventConfig.server.download.sendResumeFail, {
+        failReason,
+        resumeFile
       })
     }
   }

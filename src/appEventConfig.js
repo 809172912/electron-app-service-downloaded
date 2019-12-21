@@ -6,6 +6,8 @@ const appEventConfig = {
       downloadFileSuccess: 'server-download-downloadFileSuccess',
       downloadSuccess: 'server-download-downloadSuccess',
       downloadPause: 'server-download-downloadPause',
+      downloadPauseAll: 'server-download-downloadPauseAll',
+      sendResumeFail: 'server-download-sendResumeFail',
       downloadInterrupted: 'server-download-downloadInterrupted',
       fileExistDownliadList: 'server-download-fileExistDownliadList',
       addDownloadFileSuccess: 'server-download-addDownloadFileSuccess'
