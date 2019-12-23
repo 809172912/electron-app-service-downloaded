@@ -11,25 +11,29 @@ import appEventConfig from './appEventConfig'
 // let setCurrentDownloadItem = Symbol('setCurrentDownloadItem')
 // let getDownloadMode = Symbol('getDownloadMode')
 // let sendDownloadPause = Symbol('sendDownloadPause')
+// let sendDownloadPauseAll = Symbol('sendDownloadPauseAll')
+// let sendResumeFail = Symbol('sendResumeFail')
 // let sendDownloadInterrupted = Symbol('sendDownloadInterrupted')
 // let deleteSerialFileByDownloadUrl = Symbol('deleteSerialFileByDownloadUrl')
 // let existSerialWaitDownloadArr = Symbol('existSerialWaitDownloadArr')
-let downloadOneByOne = Symbol('downloadOneByOne')
-let sendDownloadProgress = Symbol('sendDownloadProgress')
-let sendDownloadFaild = Symbol('sendDownloadFaild')
-let sendDownloadFileSuccess = Symbol('sendDownloadFileSuccess')
-let sendDownloadSuccess = Symbol('sendDownloadSuccess')
-let initDownloadProgress = Symbol('initDownloadProgress')
-let setCurrentDownloadItem = Symbol('setCurrentDownloadItem')
-let getDownloadMode = Symbol('getDownloadMode')
-let sendDownloadPause = Symbol('sendDownloadPause')
-let sendDownloadPauseAll = Symbol('sendDownloadPauseAll')
-let sendResumeFail = Symbol('sendResumeFail')
-let sendDownloadInterrupted = Symbol('sendDownloadInterrupted')
-let deleteSerialFileByDownloadUrl = Symbol('deleteSerialFileByDownloadUrl')
-let existSerialWaitDownloadArr = Symbol('existSerialWaitDownloadArr')
-let fileExistDownliadList = Symbol('fileExistDownliadList')
-let addDownloadFileSuccess = Symbol('addDownloadFileSuccess')
+// let fileExistDownliadList = Symbol('fileExistDownliadList')
+// let addDownloadFileSuccess = Symbol('addDownloadFileSuccess')
+let downloadOneByOne = 'downloadOneByOne'
+let sendDownloadProgress = 'sendDownloadProgress'
+let sendDownloadFaild = 'sendDownloadFaild'
+let sendDownloadFileSuccess = 'sendDownloadFileSuccess'
+let sendDownloadSuccess = 'sendDownloadSuccess'
+let initDownloadProgress = 'initDownloadProgress'
+let setCurrentDownloadItem = 'setCurrentDownloadItem'
+let getDownloadMode = 'getDownloadMode'
+let sendDownloadPause = 'sendDownloadPause'
+let sendDownloadPauseAll = 'sendDownloadPauseAll'
+let sendResumeFail = 'sendResumeFail'
+let sendDownloadInterrupted = 'sendDownloadInterrupted'
+let deleteSerialFileByDownloadUrl = 'deleteSerialFileByDownloadUrl'
+let existSerialWaitDownloadArr = 'existSerialWaitDownloadArr'
+let fileExistDownliadList = 'fileExistDownliadList'
+let addDownloadFileSuccess = 'addDownloadFileSuccess'
 
 /*
 * 下载服务
@@ -148,6 +152,18 @@ class DownloadService {
     this.currentDownloadItems[downloadItem.getURL()] = downloadItem
   }
 
+  // 睡眠函数
+  sleep (numberMillis) {
+    let now = new Date()
+    let exitTime = now.getTime() + numberMillis
+    while (true) {
+      now = new Date()
+      if (now.getTime() > exitTime){
+        return
+      }
+    }
+  }
+
   // 取消部分下载
   cancel(fileList) {
     if (Object.keys(this.currentDownloadItems).length <= 0) return
@@ -190,7 +206,10 @@ class DownloadService {
   pause(pauseFileList) {
     pauseFileList.forEach(pauseFile => {
       // 设置下载状态为停止
-      if (this.allDownloadFiles[pauseFile]) this.allDownloadFiles[pauseFile]._status = this.downloadStatus.PAUSING
+      if (
+        this.allDownloadFiles[pauseFile] &&
+        this.allDownloadFiles[pauseFile]._status === this.downloadStatus.DOWNLOADING
+      ) this.allDownloadFiles[pauseFile]._status = this.downloadStatus.PAUSING
       // 当前下载对象池设置停止
       if (Object.keys(this.currentDownloadItems).includes(pauseFile)) this.currentDownloadItems[pauseFile].pause()
     })
@@ -208,19 +227,20 @@ class DownloadService {
     })
     targetFilesUrl = [...new Set([...Object.keys(this.currentDownloadItems), ...serialWaitDownloadFiles])]
     this.pause(targetFilesUrl)
-    this.checkPauseAllSuccess()
+    this.checkPauseAllSuccess(targetFilesUrl)
   }
 
   // 检查暂停全部下载
-  checkPauseAllSuccess (pauseAllFileList) {
+  checkPauseAllSuccess (pauseAllFileList = []) {
+    if (!Array.prototype.isPrototypeOf(pauseAllFileList) || !pauseAllFileList.length) return
     let pauseAllSuccess = true
     pauseAllFileList.forEach(pauseFile => {
-      if (this.allDownloadFiles[pauseFile]._status === this.downloadStatus.PAUSING) pauseAllSuccess = false
+      if (this.currentDownloadItems[pauseFile] && this.allDownloadFiles[pauseFile]._status === this.downloadStatus.PAUSING) pauseAllSuccess = false
     })
     if (pauseAllSuccess) {
       this[sendDownloadPauseAll](this.allDownloadFiles[pauseAllFileList[0]])
     } else {
-      this.checkPauseAllSuccess()
+      this.checkPauseAllSuccess(pauseAllFileList)
     }
   }
 
