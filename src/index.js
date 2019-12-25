@@ -143,7 +143,7 @@ class DownloadService {
    * */
   addWindows(appWindows = {}) {
     Object.keys(appWindows).forEach(appWindow => {
-      if (!this.allWindows[appWindow]) this.allWindows[appWindow] = appWindows[appWindow]
+      this.allWindows[appWindow] = appWindows[appWindow]
     })
   }
 
@@ -339,6 +339,7 @@ class DownloadService {
       downloadFolder: 'C:\\Users\\caozhenhui\\Desktop', 保存到哪里
       downloadFileName: 'abc.zip', 保存下来的文件名称（可选）
       downloadMode: 'serial', serial（串行）、parallel（并行）
+      _status: 'pause', （可选）要是有这个字段且值为'pause'，同时downloadMode = 'serial', 那么就自动放入停止队列
       window: 'indexWindow' 回调给哪个渲染进程
      }]
    * */
@@ -346,6 +347,8 @@ class DownloadService {
     if (!Array.prototype.isPrototypeOf(downloadFiles)) return
     // 添加下载状态
     for (let i = 0; i < downloadFiles.length; i++) {
+      // 初始化下载状态
+      let _status = downloadFiles[i]._status || this.downloadStatus.WAITING
       // 如果已经在下载或存在下载列表当中，则忽略
       if (
         Object.keys(this.currentDownloadItems).includes(downloadFiles[i].url) ||
@@ -354,13 +357,13 @@ class DownloadService {
         this[fileExistDownliadList](downloadFiles[i])
         continue
       }
-      downloadFiles[i]._status = this.downloadStatus.WAITING
+      downloadFiles[i]._status = _status
       if (downloadFiles[i].downloadMode === 'serial') this.serialWaitDownloadArr = [...this.serialWaitDownloadArr, downloadFiles[i]]
       this.allDownloadFiles[downloadFiles[i].url] = downloadFiles[i]
       this[addDownloadFileSuccess](downloadFiles[i])
       if (
-        downloadFiles[i].downloadMode === 'serial' &&
-        this.isSerialDownloading()
+        (downloadFiles[i].downloadMode === 'serial' && this.isSerialDownloading()) ||
+        (downloadFiles[i].downloadMode === 'serial' && downloadFiles[i]._status === this.downloadStatus.PAUSE)
       ) continue
       this[downloadOneByOne](downloadFiles[i].url)
     }
