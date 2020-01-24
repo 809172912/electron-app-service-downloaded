@@ -53,6 +53,7 @@ addWindows(appWindows)
  *     downloadFolder: 'C:\\Users\\***\\Desktop', 保存到哪里
  *     downloadFileName: 'abc.zip', 保存下来的文件名称（可选）
  *     downloadMode: 'serial', serial（串行下载）、parallel（并行下载）
+ *     _status: 'pause', （可选）要是有这个字段且值为'pause'，同时downloadMode = 'serial', 那么就默认为暂停状态，需要手动调用恢复下载，才能执行下载
  *     window: 'indexWindow' 下载状态、进度回调给哪个渲染进程，对应init方法needDownloadServiceWindow参数的key
  * }]
  */
@@ -206,6 +207,28 @@ callback({state, downloadFile})
 ```
 /**
  * downloadFile: 当前暂停的文件
+ */
+callback({downloadFile})
+```
+
+## ***文件已经在下载队列当中***
+
+> server-download-fileExistDownliadList
+
+```
+/**
+ * downloadFile: 当前添加到下载队列的文件
+ */
+callback({downloadFile})
+```
+
+## ***添加文件到下载池（并行或者串行都算）成功***
+
+> server-download-addDownloadFileSuccess
+
+```
+/**
+ * downloadFile: 当前添加到下载队列的文件
  */
 callback({downloadFile})
 ```
