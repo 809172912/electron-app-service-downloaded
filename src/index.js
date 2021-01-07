@@ -81,8 +81,22 @@ class DownloadService {
           item.on('updated', (event, state) => {
             // 下载已经中断，可以恢复
             if (state === 'interrupted') {
-              console.log('下载已经中断，可以恢复')
-              that[sendDownloadInterrupted](item.getReceivedBytes(), item.getTotalBytes(), JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
+              if (that.currentDownloadItems[item.getURL()].receivedBytes > 0 && that.currentDownloadItems[item.getURL()].receivedBytes === that.currentDownloadItems[item.getURL()].totalBytes) {
+                // 其实已经下载完了，已接收的字节等于文件的总字节数
+                that[sendDownloadFileSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])), item.getTotalBytes())
+                // 串行下载
+                if (that[getDownloadMode](item.getURL()) === 'serial') {
+                  // 从串行下载池当中移除当前下载完成的文件
+                  that[deleteSerialFileByDownloadUrl](item.getURL())
+                  // 串行下载池完全下载完毕
+                  if (!that.serialWaitDownloadArr.length) that[sendDownloadSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
+                  // 串行下载池队列下载
+                  if (that.serialWaitDownloadArr.length) that[downloadOneByOne]()
+                }
+              } else {
+                // 真的是中断了
+                that[sendDownloadInterrupted](item.getReceivedBytes(), item.getTotalBytes(), JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
+              }
             }
             // 下载暂停
             if (state === 'progressing' && item.isPaused()) {
@@ -93,6 +107,8 @@ class DownloadService {
             // 正在下载
             if (state === 'progressing' && !item.isPaused()) {
               console.log(item.getURL(), item.getReceivedBytes(), item.getTotalBytes())
+              that.currentDownloadItems[item.getURL()].receivedBytes = item.getReceivedBytes()
+              that.currentDownloadItems[item.getURL()].totalBytes = item.getTotalBytes()
               that[sendDownloadProgress](item.getReceivedBytes(), item.getTotalBytes(), JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
             }
           })
