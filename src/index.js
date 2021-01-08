@@ -93,6 +93,8 @@ class DownloadService {
                   // 串行下载池队列下载
                   if (that.serialWaitDownloadArr.length) that[downloadOneByOne]()
                 }
+                // 从当前下载对象池当中移除
+                delete that.currentDownloadItems[item.getURL()]
               } else {
                 // 真的是中断了
                 that[sendDownloadInterrupted](item.getReceivedBytes(), item.getTotalBytes(), JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
