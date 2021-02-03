@@ -102,13 +102,11 @@ class DownloadService {
             }
             // 下载暂停
             if (state === 'progressing' && item.isPaused()) {
-              console.log('下载暂停')
               that.allDownloadFiles[item.getURL()]._status = that.downloadStatus.PAUSE
               that[sendDownloadPause](item.getReceivedBytes(), item.getTotalBytes(), JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
             }
             // 正在下载
             if (state === 'progressing' && !item.isPaused()) {
-              console.log(item.getURL(), item.getReceivedBytes(), item.getTotalBytes())
               that.currentDownloadItems[item.getURL()].receivedBytes = item.getReceivedBytes()
               that.currentDownloadItems[item.getURL()].totalBytes = item.getTotalBytes()
               that[sendDownloadProgress](item.getReceivedBytes(), item.getTotalBytes(), JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
@@ -199,7 +197,11 @@ class DownloadService {
     fileList.forEach(cancelFile => {
       if (Object.keys(this.currentDownloadItems).includes(cancelFile)) {
         // cancel下载
-        this.currentDownloadItems[cancelFile].cancel()
+        try {
+          this.currentDownloadItems[cancelFile].cancel()
+        } catch (err) {
+          console.log('cancelErr', err)
+        }
         // 从当前下载对象池当中移除
         delete this.currentDownloadItems[cancelFile]
       }
@@ -450,96 +452,116 @@ class DownloadService {
 
   // 下载进度
   [sendDownloadProgress](receivedBytes, totalBytes, downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadProgress, {
         receivedBytes,
         totalBytes,
         downloadFile
       })
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 下载暂停
   [sendDownloadPause](receivedBytes, totalBytes, downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadPause, {
         receivedBytes,
         totalBytes,
         downloadFile
       })
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 下载暂停全部
   [sendDownloadPauseAll](downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadPauseAll)
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 恢复下载失败
   [sendResumeFail] (resumeFile, failReason) {
-    if (this.allWindows[resumeFile.window]) {
+    try {
       this.allWindows[resumeFile.window].webContents.send(appEventConfig.server.download.sendResumeFail, {
         failReason,
         resumeFile
       })
+    } catch (err) {
+      this.cancel([resumeFile.url])
     }
   }
 
   // 下载已经中断，可以恢复
   [sendDownloadInterrupted](receivedBytes, totalBytes, downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadInterrupted, {
         receivedBytes,
         totalBytes,
         downloadFile
       })
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 下载失败
   [sendDownloadFaild](state, downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadFail, {
         state,
         downloadFile
       })
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 单个文件下载成功
   [sendDownloadFileSuccess](downloadFile, fileSize) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadFileSuccess, {
         downloadFile,
         fileSize
       })
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 文件已经在下载或存在下载列表当中
   [fileExistDownliadList](downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.fileExistDownliadList, {
         downloadFile
       })
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 添加文件到下载池（并行或者串行都算）成功
   [addDownloadFileSuccess](downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.addDownloadFileSuccess, {
         downloadFile
       })
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 
   // 下载成功
   [sendDownloadSuccess](downloadFile) {
-    if (this.allWindows[downloadFile.window]) {
+    try {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadSuccess)
+    } catch (err) {
+      this.cancel([downloadFile.url])
     }
   }
 }
