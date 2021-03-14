@@ -22,6 +22,7 @@ let downloadOneByOne = 'downloadOneByOne'
 let sendDownloadProgress = 'sendDownloadProgress'
 let sendDownloadFaild = 'sendDownloadFaild'
 let sendDownloadFileSuccess = 'sendDownloadFileSuccess'
+let sendDownloadFileInterruptedWarning = 'sendDownloadFileInterruptedWarning'
 let sendDownloadSuccess = 'sendDownloadSuccess'
 let initDownloadProgress = 'initDownloadProgress'
 let setCurrentDownloadItem = 'setCurrentDownloadItem'
@@ -84,6 +85,7 @@ class DownloadService {
               if (that.currentDownloadItems[item.getURL()].receivedBytes > 0 && that.currentDownloadItems[item.getURL()].receivedBytes === that.currentDownloadItems[item.getURL()].totalBytes) {
                 // 其实已经下载完了，已接收的字节等于文件的总字节数
                 that[sendDownloadFileSuccess](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])), item.getTotalBytes())
+                that[sendDownloadFileInterruptedWarning](JSON.parse(JSON.stringify(that.allDownloadFiles[item.getURL()])))
                 // 串行下载
                 if (that[getDownloadMode](item.getURL()) === 'serial') {
                   // 从串行下载池当中移除当前下载完成的文件
@@ -190,6 +192,12 @@ class DownloadService {
       this.serialWaitDownloadArr.forEach((serialWaitDownloadFile, index) => {
         if (serialWaitDownloadFile.url === cancelFile) {
           this.serialWaitDownloadArr.splice(index, 1)
+        }
+      })
+      Object.keys(this.allDownloadFiles).forEach(item => {
+        if (item === cancelFile) {
+          // 从下载对象池当中移除
+          delete this.allDownloadFiles[cancelFile]
         }
       })
     })
@@ -528,6 +536,17 @@ class DownloadService {
       this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadFileSuccess, {
         downloadFile,
         fileSize
+      })
+    } catch (err) {
+      this.cancel([downloadFile.url])
+    }
+  }
+
+  // 下载完成，但是异常中断
+  [sendDownloadFileInterruptedWarning](downloadFile) {
+    try {
+      this.allWindows[downloadFile.window].webContents.send(appEventConfig.server.download.downloadFileInterruptedWarning, {
+        downloadFile
       })
     } catch (err) {
       this.cancel([downloadFile.url])

@@ -10,7 +10,8 @@ const appEventConfig = {
       sendResumeFail: 'server-download-sendResumeFail',
       downloadInterrupted: 'server-download-downloadInterrupted',
       fileExistDownliadList: 'server-download-fileExistDownliadList',
-      addDownloadFileSuccess: 'server-download-addDownloadFileSuccess'
+      addDownloadFileSuccess: 'server-download-addDownloadFileSuccess',
+      downloadFileInterruptedWarning: 'server-download-downloadFileInterruptedWarning'
     }
   }
 }
